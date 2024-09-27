@@ -1,5 +1,11 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+session_start();
 require 'config.php';
 
 // Vérifier si l'utilisateur est connecté

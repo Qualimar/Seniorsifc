@@ -1,9 +1,14 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
 // Inclure le fichier de configuration
 require 'config.php'; 
 
 // Liste des équipes à afficher
-$team_ids = [1, 2, 3]; // ISNEAUVILLE FC, ISNEAUVILLE FC 2, ISNEAUVILLE FC 3
+$team_ids = [1, 2, 3]; // ISNEAUVILLE FC APREM, ISNEAUVILLE FC D1, ISNEAUVILLE FC D3
 
 // Fonction pour afficher un tableau de statistiques
 function display_team_stats($db, $team_ids, $type) {

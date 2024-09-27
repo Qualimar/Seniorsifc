@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 require 'config.php';
 
 // Liste des équipes à afficher
-$team_ids = [1, 2, 3]; // ISNEAUVILLE FC, ISNEAUVILLE FC 2, ISNEAUVILLE FC 3
+$team_ids = [1, 2, 3]; // ISNEAUVILLE FC APREM, ISNEAUVILLE FC D1, ISNEAUVILLE FC D3
 
 // Fonction pour afficher la dynamique des 5 derniers matchs, les détails des matchs et le prochain match à venir
 function display_last_games($db, $team_ids) {
