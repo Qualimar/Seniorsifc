@@ -1,5 +1,11 @@
 <?php
-include('db.php');
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+include('config.php');
 /*include('functions.php');*/
 include_once('jpgraph/src/jpgraph.php');
 include_once('jpgraph/src/jpgraph_bar.php');
@@ -48,6 +54,12 @@ switch($menu) {
 	case 'versus' :
 		include('versus.php');
 		break;
+	case 'logout' :
+		include('logout.php');
+		break;
+	case 'my_profile' :
+	include('my_profile.php');
+	break;
 }
 
 ?>
