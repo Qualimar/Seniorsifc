@@ -13,7 +13,6 @@ require 'config.php';
 // Triés par nombre de matchs joués (played) de manière décroissante et, en cas d'égalité, par le nombre de fois titulaire (starter)
 $query = $db->query('
     SELECT
-        p.players_id,
         p.players_firstname,
         p.players_name,
         SUM(s.goals) AS goals,
@@ -52,7 +51,7 @@ $players = $query->fetchAll();
     <tbody>
         <?php foreach ($players as $player): ?>
             <tr>
-                <td><a href="index.php?m=profiles&id=<?php echo $player['players_id']; ?>"><?php echo $player['players_firstname'] . ' ' . $player['players_name']; ?></a></td>
+                <td><?php echo $player['players_firstname'] . ' ' . $player['players_name']; ?></td>
                 <td><?php echo $player['played']; ?></td>
                 <td><?php echo $player['starter']; ?></td>
                 <td><?php echo $player['goals']; ?></td>

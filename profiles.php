@@ -1,41 +1,48 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
 if (!isset($_GET['id'])) {
     $id = 1;
 } else {
     $id = $_GET['id'];
 }
 
-// Récupération des données du joueur
-$query = $db->query('SELECT * FROM players WHERE players_id=' . $id);
-$player_info = $query->fetch();
+// Récupérer les informations du joueur et l'utilisateur lié pour l'image de profil
+$query = $db->query('SELECT p.*, u.profile_pic FROM players p LEFT JOIN users u ON p.players_id = u.players_id WHERE p.players_id = ' . $id);
+$playerdata = $query->fetch();
 
-// Récupération des statistiques du joueur
-$query = $db->query('SELECT
-    sum(goals) as goals,
-    sum(assists) as assists,
-    sum(red_card) as redcards,
-    sum(yellow_card) as yellowcards,
-    count(*) as played,
-    sum(starter) as starter,
-    sum(capitaine) as capitaine,
-    (SELECT players_name FROM players WHERE stats.players_id = players.players_id) as name,
-    (SELECT players_firstname FROM players WHERE stats.players_id = players.players_id) as firstname
-    FROM stats WHERE players_id=' . $id . ';');
-$player_stats = $query->fetch();
+// Récupérer les statistiques du joueur
+$query = $db->query('
+    SELECT
+        sum(goals) as goals,
+        sum(assists) as assists,
+        sum(red_card) as redcards,
+        sum(yellow_card) as yellowcards,
+        count(*) as played,
+        sum(starter) as starter,
+        sum(capitaine) as capitaine
+    FROM stats WHERE players_id = ' . $id
+);
+$stats = $query->fetch();
 ?>
 
+<!-- Formulaire pour sélectionner un autre joueur -->
 <div>
     <form method='GET' action='index.php?m=profiles'>
         <input type='hidden' name='m' value='profiles'>
         <select name='id'>
             <?php
-            $query = $db->query('SELECT players_id,players_name,players_firstname FROM players ORDER BY players_firstname;');
+            $query = $db->query('SELECT players_id, players_name, players_firstname FROM players ORDER BY players_firstname;');
             while ($data = $query->fetch()) {
                 echo '<option value="' . $data['players_id'] . '"';
                 if ($id == $data['players_id']) {
                     echo ' selected';
                 }
-                echo '>' . $data['players_firstname'] . ' ' . $data['players_name'] . '</option>' . PHP_EOL;
+                echo '>' . $data['players_firstname'] . ' ' . $data['players_name'] . '</option>';
             }
             ?>
         </select>
@@ -43,66 +50,38 @@ $player_stats = $query->fetch();
     </form>
 </div>
 
-<div class="container"> <!-- Conteneur principal qui regroupe le profil et les stats -->
-    <!-- Section profil du joueur -->
-    <div class="profile-section">
-        <h1><?php echo $player_info['players_firstname'] . ' ' . $player_info['players_name']; ?></h1>
-        <img src="<?php echo !empty($player_info['profile_pic']) ? $player_info['profile_pic'] : 'default_profile_pic.jpg'; ?>" alt="Photo de profil" class="profile-pic" style="max-width: 150px;">
-        <p><strong>Âge :</strong> <?php echo $player_info['age']; ?> ans</p>
-        <p><strong>Taille :</strong> <?php echo $player_info['height']; ?> cm</p>
-        <p><strong>Poids :</strong> <?php echo $player_info['weight']; ?> kg</p>
-        <p><strong>Poste préféré :</strong> <?php echo $player_info['preferred_position']; ?></p>
-        <p><strong>Surnom :</strong> <?php echo $player_info['nickname']; ?></p>
+<!-- Affichage du profil joueur -->
+<div style="display: flex;">
+    <!-- Partie gauche : photo et informations du joueur -->
+    <div style="flex: 1; text-align: center;">
+        <h1><?php echo $playerdata['players_firstname'] . ' ' . $playerdata['players_name']; ?></h1>
+        
+        <?php if (!empty($playerdata['profile_pic'])): ?>
+            <img src="<?php echo $playerdata['profile_pic']; ?>" alt="Photo de profil" style="width: 150px; height: 150px; border-radius: 50%;">
+        <?php else: ?>
+            <img src="default-profile.png" alt="Photo de profil" style="width: 150px; height: 150px; border-radius: 50%;">
+        <?php endif; ?>
+
+        <p><strong>Âge :</strong> <?php echo $playerdata['age']; ?></p>
+        <p><strong>Taille :</strong> <?php echo $playerdata['height']; ?> cm</p>
+        <p><strong>Poids :</strong> <?php echo $playerdata['weight']; ?> kg</p>
+        <p><strong>Poste préféré :</strong> <?php echo $playerdata['preferred_position']; ?></p>
+        <p><strong>Surnom :</strong> <?php echo $playerdata['nickname']; ?></p>
     </div>
 
-    <!-- Section statistiques du joueur -->
-    <div class="stats-section">
+    <!-- Partie droite : statistiques -->
+    <div style="flex: 1;">
         <h2>Stats globales</h2>
-        <table border="1">
+        <table>
             <tbody>
-                <?php
-                echo '<tr><td>Matchs joués</td><td>' . $player_stats['played'] . '</td></tr>';
-                echo '<tr><td>Titulaires</td><td>' . $player_stats['starter'] . '</td></tr>';
-                echo '<tr><td>Buts</td><td>' . $player_stats['goals'] . '</td></tr>';
-                echo '<tr><td>Pass D</td><td>' . $player_stats['assists'] . '</td></tr>';
-                echo '<tr><td>Carton Jaune</td><td>' . $player_stats['yellowcards'] . '</td></tr>';
-                echo '<tr><td>Carton Rouge</td><td>' . $player_stats['redcards'] . '</td></tr>';
-                echo '<tr><td>Capitaine</td><td>' . $player_stats['capitaine'] . '</td></tr>';
-                ?>
+                <tr><td>Matchs joués</td><td><?php echo $stats['played']; ?></td></tr>
+                <tr><td>Titulaires</td><td><?php echo $stats['starter']; ?></td></tr>
+                <tr><td>Buts</td><td><?php echo $stats['goals']; ?></td></tr>
+                <tr><td>Pass D</td><td><?php echo $stats['assists']; ?></td></tr>
+                <tr><td>Carton Jaune</td><td><?php echo $stats['yellowcards']; ?></td></tr>
+                <tr><td>Carton Rouge</td><td><?php echo $stats['redcards']; ?></td></tr>
+                <tr><td>Capitaine</td><td><?php echo $stats['capitaine']; ?></td></tr>
             </tbody>
         </table>
     </div>
 </div>
-
-<style>
-/* Conteneur principal pour séparer le profil et les stats */
-.container {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px;
-}
-
-/* Section profil du joueur */
-.profile-section {
-    flex: 1;
-    padding: 10px;
-    background-color: #1D1D1D;
-    color: white;
-    text-align: center;
-}
-
-/* Image de profil */
-.profile-pic {
-    border-radius: 50%;
-    max-width: 100px;
-    margin-bottom: 10px;
-}
-
-/* Section statistiques du joueur */
-.stats-section {
-    flex: 1;
-    padding: 10px;
-    background-color: #252525;
-    color: white;
-}
-</style>

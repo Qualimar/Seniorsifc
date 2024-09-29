@@ -7,12 +7,16 @@ if (!isset($_SESSION['user_id'])) {
 // Inclure le fichier de configuration
 require 'config.php';
 
-// Liste des équipes à afficher
-$team_ids = [1, 2, 3]; // ISNEAUVILLE FC, ISNEAUVILLE FC 2, ISNEAUVILLE FC 3
+// Liste des équipes à afficher dans l'ordre souhaité
+$team_ids = [
+    3 => 'ISNEAUVILLE FC APREM',
+    1 => 'ISNEAUVILLE FC D1',
+    2 => 'ISNEAUVILLE FC D3'
+];
 
-// Fonction pour afficher la dynamique des 5 derniers matchs, les détails des matchs et le prochain match à venir
+// Fonction pour afficher la dynamique des 5 derniers matchs et les détails des matchs
 function display_last_games($db, $team_ids) {
-    foreach ($team_ids as $team_id) {
+    foreach ($team_ids as $team_id => $team_name) {
         // Requête pour récupérer les 5 derniers matchs joués avec un score
         $query = $db->prepare("
             SELECT g.games_id, g.date_match, g.id_equipe_1, g.id_equipe_2, g.score_1, g.score_2, 
@@ -28,14 +32,10 @@ function display_last_games($db, $team_ids) {
         $query->execute(['team_id' => $team_id]);
 
         // Affichage du nom de l'équipe
-        $team_name_query = $db->prepare("SELECT teams_name FROM teams WHERE teams_id = :team_id");
-        $team_name_query->execute(['team_id' => $team_id]);
-        $team_name = $team_name_query->fetch(PDO::FETCH_ASSOC)['teams_name'];
-
         echo "<h2>Derniers matchs pour $team_name</h2>";
 
         // Affichage de la dynamique des résultats dans un tableau avec une seule ligne et 5 cellules
-        echo '<table border="1" class="fixedtable">
+        echo '<table border="1" style="margin-bottom: 10px;">
                 <tr>';
         
         $results = []; // Tableau pour stocker la dynamique des résultats
@@ -65,7 +65,7 @@ function display_last_games($db, $team_ids) {
         $query->execute(['team_id' => $team_id]);
 
         // Affichage des 5 derniers matchs
-        echo '<table border="1" class="fixedtable">
+        echo '<table border="1">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -86,9 +86,10 @@ function display_last_games($db, $team_ids) {
         }
         echo '</tbody></table>';
 
-        // Requête pour obtenir le prochain match à venir
+        // Requête pour récupérer le prochain match
         $next_match_query = $db->prepare("
-            SELECT g.date_match, t1.teams_name AS equipe1, t2.teams_name AS equipe2
+            SELECT g.games_id, g.date_match, g.id_equipe_1, g.id_equipe_2, 
+                   t1.teams_name AS equipe1, t2.teams_name AS equipe2
             FROM games g
             JOIN teams t1 ON g.id_equipe_1 = t1.teams_id
             JOIN teams t2 ON g.id_equipe_2 = t2.teams_id
@@ -100,32 +101,27 @@ function display_last_games($db, $team_ids) {
         $next_match_query->execute(['team_id' => $team_id]);
         $next_match = $next_match_query->fetch(PDO::FETCH_ASSOC);
 
-        // Affichage du prochain match s'il y en a un
+        // Affichage du prochain match
         if ($next_match) {
-            echo "<h2 class='standard-text'>Prochain match pour $team_name</h2>";  // Uniformiser avec un <h2>
-            echo '<table border="1" class="fixedtable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Domicile</th>
-                            <th>Exterieur</th>
-                        </tr>
-                    </thead>
-                    <tbody>';
+            echo "<h2>Prochain match pour $team_name</h2>";
+            echo '<table border="1">
+                    <tr>
+                        <th>Date</th>
+                        <th>Domicile</th>
+                        <th>Exterieur</th>
+                    </tr>';
             echo '<tr>';
             echo '<td>' . $next_match['date_match'] . '</td>';
             echo '<td>' . $next_match['equipe1'] . '</td>';
             echo '<td>' . $next_match['equipe2'] . '</td>';
-            echo '</tr>';
-            echo '</tbody></table>';
+            echo '</tr></table>';
         } else {
-            echo "<p class='standard-text' style='text-align:center;'>Aucun match à venir.</p>";  // Uniformiser
+            echo "<h2>Aucun match à venir pour $team_name.</h2>";
         }
     }
 }
 
-// Affichage des 5 derniers matchs pour chaque équipe et le prochain match
-echo "<h1 class='standard-text'>5 Derniers Matchs Joués et Prochains Matchs</h1>";
+// Affichage des 5 derniers matchs pour chaque équipe dans l'ordre souhaité
+echo "<h1>5 Derniers Matchs Joués et Prochains Matchs</h1>";
 display_last_games($db, $team_ids);
-
 ?>

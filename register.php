@@ -1,4 +1,9 @@
 <?php
+// Activer l'affichage des erreurs pour le débogage
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -7,24 +12,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $players_id = $_POST['players_id']; // Sélection du joueur
 
+    // Définir une image par défaut pour le profil s'il n'y en a pas
+    $profile_pic = 'uploads/default_profile.png';
+
     // Vérification si le nom d'utilisateur ou l'email existe déjà
     $check_query = $db->prepare('SELECT * FROM users WHERE username = :username OR email = :email');
     $check_query->execute(['username' => $username, 'email' => $email]);
+
     if ($check_query->rowCount() > 0) {
         $error = "L'identifiant ou l'email est déjà pris. Veuillez en choisir un autre.";
     } else {
         // Insertion dans la BDD
-        $query = $db->prepare('INSERT INTO users (username, password, email, players_id) VALUES (:username, :password, :email, :players_id)');
-        $query->execute([
+        $query = $db->prepare('INSERT INTO users (username, password, email, players_id, profile_pic) VALUES (:username, :password, :email, :players_id, :profile_pic)');
+        
+        if ($query->execute([
             'username' => $username,
             'password' => $password,
             'email' => $email,
-            'players_id' => $players_id
-        ]);
-
-        echo "Utilisateur créé avec succès ! Vous pouvez maintenant vous connecter.";
-        header('Location: login.php'); // Redirection après inscription
-        exit();
+            'players_id' => $players_id,
+            'profile_pic' => $profile_pic
+        ])) {
+            // Redirection après l'inscription réussie
+            header('Location: login.php');
+            exit();
+        } else {
+            $error = "Une erreur s'est produite lors de l'inscription. Veuillez réessayer.";
+        }
     }
 }
 ?>
