@@ -1,0 +1,1 @@
+cat stats.txt | awk '{print "insert into stats(games_id,players_id,teams_id,goals,assists,yellow_card,red_card,starter,postes,Capitaine) values("$1");"}'

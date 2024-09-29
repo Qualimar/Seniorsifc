@@ -5,6 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+session_start();
 require 'config.php';
 
 // Vérifier si l'utilisateur est connecté
@@ -18,7 +19,7 @@ $user_id = $_SESSION['user_id'];
 
 // Récupérer les informations du joueur et de l'utilisateur
 $query = $db->prepare("
-    SELECT p.players_firstname, p.players_name, p.birthdate, p.height, p.weight, p.preferred_position, p.nickname, u.profile_pic
+    SELECT p.players_firstname, p.players_name, p.age, p.height, p.weight, p.preferred_position, p.nickname, u.profile_pic
     FROM players p
     JOIN users u ON u.players_id = p.players_id
     WHERE u.user_id = :user_id
@@ -26,15 +27,10 @@ $query = $db->prepare("
 $query->execute(['user_id' => $user_id]);
 $user_info = $query->fetch(PDO::FETCH_ASSOC);
 
-// Calculer l'âge à partir de la date de naissance
-$birthdate = new DateTime($user_info['birthdate']);
-$today = new DateTime();
-$age = $today->diff($birthdate)->y;
-
 // Traitement de la mise à jour des informations du profil
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Récupérer les nouvelles valeurs soumises par le formulaire
-    $birthdate = $_POST['birthdate'];
+    $age = $_POST['age'];
     $height = $_POST['height'];
     $weight = $_POST['weight'];
     $preferred_position = $_POST['preferred_position'];
@@ -43,11 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Mise à jour des informations du joueur
     $update_query = $db->prepare("
         UPDATE players 
-        SET birthdate = :birthdate, height = :height, weight = :weight, preferred_position = :preferred_position, nickname = :nickname
+        SET age = :age, height = :height, weight = :weight, preferred_position = :preferred_position, nickname = :nickname
         WHERE players_id = (SELECT players_id FROM users WHERE user_id = :user_id)
     ");
     $update_query->execute([
-        'birthdate' => $birthdate,
+        'age' => $age,
         'height' => $height,
         'weight' => $weight,
         'preferred_position' => $preferred_position,
@@ -104,12 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Formulaire de mise à jour des informations -->
     <form action="my_profile.php" method="post" enctype="multipart/form-data">
         <p>
-            <label>Date de naissance :</label>
-            <input type="date" name="birthdate" value="<?php echo $user_info['birthdate']; ?>" required>
-        </p>
-        <p>
             <label>Âge :</label>
-            <span><?php echo $age . ' ans'; ?></span>
+            <input type="number" name="age" value="<?php echo $user_info['age']; ?>" required>
         </p>
         <p>
             <label>Taille (en cm) :</label>
@@ -122,12 +114,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p>
             <label>Poste préféré :</label>
             <select name="preferred_position" required>
-                <option value="Gardien" <?php if ($user_info['preferred_position'] == 'Gardien') echo 'selected'; ?>>Gardien</option>
-                <option value="DEF" <?php if ($user_info['preferred_position'] == 'DEF') echo 'selected'; ?>>DEF</option>
-                <option value="LATERAL/PISTON" <?php if ($user_info['preferred_position'] == 'LATERAL/PISTON') echo 'selected'; ?>>LATERAL/PISTON</option>
-                <option value="MILIEU DEF" <?php if ($user_info['preferred_position'] == 'MILIEU DEF') echo 'selected'; ?>>MILIEU DEF</option>
-                <option value="MILIEU OFF" <?php if ($user_info['preferred_position'] == 'MILIEU OFF') echo 'selected'; ?>>MILIEU OFF</option>
-                <option value="ATTAQUANT" <?php if ($user_info['preferred_position'] == 'ATTAQUANT') echo 'selected'; ?>>ATTAQUANT</option>
+                <option value="GB" <?php if($user_info['preferred_position'] == "GB") echo 'selected'; ?>>Gardien</option>
+                <option value="DEF" <?php if($user_info['preferred_position'] == "DEF") echo 'selected'; ?>>Défenseur</option>
+                <option value="LATERAL/PISTON" <?php if($user_info['preferred_position'] == "LATERAL/PISTON") echo 'selected'; ?>>Latéral/Piston</option>
+                <option value="MILIEU DEF" <?php if($user_info['preferred_position'] == "MILIEU DEF") echo 'selected'; ?>>Milieu Défensif</option>
+                <option value="MILIEU OFF" <?php if($user_info['preferred_position'] == "MILIEU OFF") echo 'selected'; ?>>Milieu Offensif</option>
+                <option value="ATTAQUANT" <?php if($user_info['preferred_position'] == "ATTAQUANT") echo 'selected'; ?>>Attaquant</option>
             </select>
         </p>
         <p>
