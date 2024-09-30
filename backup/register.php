@@ -72,12 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <label for="players_id">Choisir un joueur :</label>
         <select name="players_id" required>
             <?php
-            // Récupérer les joueurs qui ne sont pas déjà inscrits
-            $players = $db->query("
-                SELECT players_id, players_firstname, players_name 
-                FROM players 
-                WHERE players_id NOT IN (SELECT players_id FROM users)
-            ");
+            // Récupérer tous les joueurs disponibles pour lier à l'utilisateur
+            $players = $db->query("SELECT players_id, players_firstname, players_name FROM players");
             while ($player = $players->fetch(PDO::FETCH_ASSOC)) {
                 echo '<option value="' . $player['players_id'] . '">' . $player['players_firstname'] . ' ' . $player['players_name'] . '</option>';
             }

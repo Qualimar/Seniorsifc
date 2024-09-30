@@ -19,6 +19,20 @@ require 'config.php';
 </head>
 <body>
 
+<div class="teamsdiv">
+    <h1>ISNEAUVILLE FC - Résultat du week-end</h1>
+
+    <!-- Section des actualités -->
+    <div class="statdiv">
+    <h2>Résultat du 29/09</h2>
+    <p class="greytext">
+        Cette section affiche les derniers résultats des 3 équipes Seniors (Buteurs, passeurs et le MVP désigné par les Coachs)
+    </p>
+    <ul>
+        <li><span class="stattext">29 Septembre 2024 :</span> Coupe Balluet - Défaite 3-2 sur le terrain de St Pierre de Varengeville. Buteurs : Edouard et Jeremy  MVP: Edouard </li>
+    </ul>
+</div>
+
 <div class="maindiv">
     <h1>ISNEAUVILLE FC - Infos et Nouveautés</h1>
 
